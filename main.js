@@ -1,39 +1,57 @@
-const taskButton = document.querySelector('button');
+const taskButton = document.querySelector('.input-tasks__adder');
 const taskList = document.querySelector('ul');
+const doneButton = document.querySelector('.done-btn');
+const removeButton = document.querySelector('.remove-btn');
+const taskInput = document.querySelector('#tasksInput');
 
+const ERROR_MESSAGE = 'Пожалуйста, введите ваше дело';
 
-taskButton.addEventListener('click', () => {
+let tasksArray = localStorage.getItem('items') ? JSON.parse(localStorage.getItem('items')) : [];
+localStorage.setItem('items', JSON.stringify(tasksArray));
+const data = JSON.parse(localStorage.getItem('items'));
 
-    const taskInput = document.querySelector('#tasksInput');
+const createTask = (item) => {
     const task = document.createElement('li');
-    const taskText = document.createElement('p');
-    const buttonClose = document.createElement("button");
+    task.innerText = item;
+    taskList.appendChild(task);
+    removeButton.classList.remove('hidden');
+}
 
+const addTask = () => {
     if (taskInput.value === "") {
-        taskInput.setCustomValidity('error');
+        taskInput.setCustomValidity(ERROR_MESSAGE);
         taskInput.classList.add('error');
     } else {
-        taskText.innerText = taskInput.value;
-        buttonClose.className = "close";
-        buttonClose.innerHTML = '\u00D7';
-        task.appendChild(taskText);
-        task.appendChild(buttonClose);
-        taskList.appendChild(task);
-
+        taskInput.checkValidity();
         taskInput.setCustomValidity('');
         taskInput.classList.remove('error');
+        console.log(taskInput.value)
+        tasksArray.push(taskInput.value);
+        localStorage.setItem('items', JSON.stringify(tasksArray))
+        createTask(taskInput.value);
     }
-
-    taskInput.reportValidity();
     taskInput.value = "";
+}
+
+const enterKeydown = (evt) => {
+    if (evt.key === 'Enter' || evt.key === '13') {
+        evt.preventDefault();
+        addTask();
+    };
+}
+
+data.forEach(item => {
+    createTask(item);
 });
 
-taskList.addEventListener('click', (evt) => {
-    console.log(evt.target)
-    if (evt.target.tagName === 'P') {
-        evt.target.classList.toggle('checked');
+removeButton.addEventListener('click', () => {
+    localStorage.clear();
+    tasksArray = [];
+    while (taskList.firstChild) {
+        taskList.removeChild(taskList.firstChild)
     }
-    if (evt.target.classList.contains('close')) {
-        taskList.removeChild(evt.target.parentNode);
-    }
+    removeButton.classList.add('hidden');
 });
+
+taskButton.addEventListener('click', addTask);
+document.addEventListener('keydown', enterKeydown);
